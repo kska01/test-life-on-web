@@ -1,5 +1,6 @@
 package com.lifeon.test.domain.plan;
 
+import com.lifeon.test.domain.plan.uitil.DwgToDxfConverter;
 import com.lifeon.test.global.exception.FileUploadException;
 import java.io.File;
 import java.io.IOException;
@@ -19,30 +20,42 @@ import org.springframework.web.multipart.MultipartFile;
 public class PlanFileService {
 
     private final PlanFileRepository planFileRepository;
+    private final DwgToDxfConverter dwgToDxfConverter;
 
     @Value("${file.dir}")
     private String fileDir;
 
+    @Value(("${dxf.output.dir}"))
+    private String dxfOutputDir;
+
+    private String dwgFileUrl;
+    private String dwgFilePath;
+    private String outputDxfFilePath;
+
     @Transactional
-    public void uploadFile (MultipartFile planFile) {
-        String fileUrl = null;
+    public void uploadFile(MultipartFile planFile) {
 
         if (planFile != null && !planFile.isEmpty()) {
-            fileUrl = saveFile(planFile);
+            dwgFileUrl = saveFileAndMakPath(planFile);
+            convertDwgToDxf();
         }
 
-        log.info("file : {}", fileUrl);
+        log.info("file : {}", dwgFileUrl);
         log.info("planFile : {}", planFile);
-
     }
 
-    String saveFile(MultipartFile planFile) {
+    private void convertDwgToDxf() {
+        dwgToDxfConverter.convert(dwgFilePath, outputDxfFilePath);
+    }
+
+    private String saveFileAndMakPath(MultipartFile planFile) {
         try {
             // 현재 프로젝트 디렉토리
             String projectDir = Paths.get("").toAbsolutePath().toString();
 
             // 디렉토리 관련 객체 생성
             File directory = new File(projectDir, fileDir);
+            log.info("directory: {}", directory);
 
             // 디렉토리가 없으면 생성
             if (!directory.exists()) {
@@ -58,10 +71,17 @@ public class PlanFileService {
             // 파일 저장
             planFile.transferTo(new File(directory, savedFileName));
 
+            // dwgFilePath 생성
+            dwgFilePath = new File(directory, savedFileName).getAbsolutePath();
+            log.info("dwgFilePath: {}", dwgFilePath);
+
+            // dxf 파일 저장 경로 생성
+            outputDxfFilePath = new File(projectDir, dxfOutputDir).getAbsolutePath();
+            log.info("path: {}", outputDxfFilePath);
+
             return savedFileName;
 
-
-        } catch (IOException e){
+        } catch (IOException e) {
             throw new FileUploadException();
         }
     }
