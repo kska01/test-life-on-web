@@ -13,4 +13,4 @@ const fileUploadApi = {
   },
 };
 
-export default uploadFileApi;
+export default fileUploadApi;
