@@ -1,5 +1,5 @@
 import React from 'react';
 
 export default function Footer() {
-  return <div>Footer</div>;
+  return <p className='mb-25 text-2xl text-center'>©Life on Korea Inc. All rights reserved</p>;
 }
