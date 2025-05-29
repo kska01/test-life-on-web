@@ -2,10 +2,39 @@ import React, { useState } from 'react';
 
 export default function InputFile({ onChangeFile }) {
   const [dragOver, setDragOver] = useState(false);
+  const allowedExtensions = ['dwg', 'jpg', 'jpeg', 'pdf'];
+
+  const isValidExtension = (file) => {
+    const fileName = file.name;
+    const fileNameSplit = fileName.split('.');
+
+    if (fileNameSplit.length < 2) {
+      alert('파일을 확인해 주세요, 파일은 "파일명.확장자" 형태여야 합니다.');
+      return false;
+    }
+
+    const fileExtension = fileNameSplit[fileNameSplit.length - 1].toLowerCase();
+    console.log(allowedExtensions.includes(fileExtension));
+
+    return allowedExtensions.includes(fileExtension);
+  };
+
+  const handleFileProcessing = (file) => {
+    if (file && isValidExtension(file)) {
+      onChangeFile(file);
+    } else if (file) {
+      alert(
+        `지원하지 않는 파일 형식입니다. ${allowedExtensions.join(', ').toUpperCase()} 확장자만 업로드 가능합니다.`,
+      );
+      onChangeFile(null);
+    } else {
+      onChangeFile(null);
+    }
+  };
 
   const handleDragEnter = (e) => {
-    e.preventDefault(); 
-    e.stopPropagation(); 
+    e.preventDefault();
+    e.stopPropagation();
     setDragOver(true);
   };
 
@@ -24,11 +53,11 @@ export default function InputFile({ onChangeFile }) {
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setDragOver(false); 
+    setDragOver(false);
 
     if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const droppedFile = e.dataTransfer.files[0];
-      onChangeFile(droppedFile);
+      handleFileProcessing(droppedFile);
       e.dataTransfer.clearData();
     }
   };
@@ -36,7 +65,7 @@ export default function InputFile({ onChangeFile }) {
   // 클릭해서 파일 선택하는 경우의 이벤트 핸들러
   const handleChange = (e) => {
     const selectedFile = e.target.files ? e.target.files[0] : null;
-    onChangeFile(selectedFile);
+    handleFileProcessing(selectedFile);
 
     if (e.target) {
       e.target.value = ''; // input 값 초기화 (동일 파일 재선택 가능하도록)
@@ -52,9 +81,7 @@ export default function InputFile({ onChangeFile }) {
       <hr className="mt-5 mb-8 border-solid border-gray-300 w-full" />
       <label
         className={`${
-          dragOver
-            ? 'border-blue-500 bg-blue-100 text-blue-500 font-semibold'
-            : 'border-gray-300'
+          dragOver ? 'border-blue-500 bg-blue-100 text-blue-500 font-semibold' : 'border-gray-300'
         } cursor-pointer`}
         htmlFor="fileUpload"
         onDragEnter={handleDragEnter}
