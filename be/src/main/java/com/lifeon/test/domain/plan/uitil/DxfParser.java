@@ -35,7 +35,7 @@ public class DxfParser {
                 "Door", "A-DOOR", "DOOR", "I-DOOR-SWING", // 기존 이름들
                 "L-Door", "AA-DWXM-DOOR"                 // DXF 파일에서 확인된 이름들
             }; // 예시 레이어 이름들
-            log.debug("Target layer names for door search: {}", (Object)targetLayerNames);
+            log.debug("Target layer names for door search: {}", (Object) targetLayerNames);
 
             for (String layerName : targetLayerNames) {
                 DXFLayer layer = doc.getDXFLayer(layerName);
@@ -61,7 +61,8 @@ public class DxfParser {
 
             // 2. 지정된 레이어에서 문을 찾지 못한 경우, 문서 전체의 모든 INSERT 엔티티를 검색
             if (doorInfos.isEmpty()) {
-                log.info("No doors found in specific target layers. Scanning all INSERT entities from all layers in the document...");
+                log.info(
+                    "No doors found in specific target layers. Scanning all INSERT entities from all layers in the document...");
                 Iterator<DXFLayer> layerIterator = doc.getDXFLayerIterator();
                 while (layerIterator.hasNext()) {
                     DXFLayer currentLayer = layerIterator.next();
@@ -116,7 +117,8 @@ public class DxfParser {
     /**
      * 개별 엔티티를 처리하여 문 정보를 추출하고 doorInfos 리스트에 추가합니다.
      */
-    private void processEntityForDoor(DXFEntity entity, DXFDocument doc, List<DoorInfo> doorInfos, String currentLayerName) {
+    private void processEntityForDoor(DXFEntity entity, DXFDocument doc, List<DoorInfo> doorInfos,
+        String currentLayerName) {
         if (!"INSERT".equals(entity.getType())) {
             return;
         }
@@ -144,7 +146,8 @@ public class DxfParser {
         }
 
         if (isDoorBlock) {
-            log.info("Potential door block MATCHED: Name='{}', Layer='{}'", blockName, currentLayerName); // MATCHED 로그 추가
+            log.info("Potential door block MATCHED: Name='{}', Layer='{}'", blockName,
+                currentLayerName); // MATCHED 로그 추가
             Point insertionPoint = insert.getPoint();
             // ... (이하 동일) ...
             DoorInfo door = new DoorInfo(
@@ -157,10 +160,12 @@ public class DxfParser {
                 blockName
             );
             doorInfos.add(door);
-            log.info("Door added: Block='{}', Layer='{}', X={}, Y={}", blockName, currentLayerName, door.getX(), door.getY());
+            log.info("Door added: Block='{}', Layer='{}', X={}, Y={}", blockName, currentLayerName,
+                door.getX(), door.getY());
 
         } else if (blockName != null) {
-            log.debug("Non-door INSERT entity SKIPPED: BlockName='{}', Layer='{}'", blockName, currentLayerName); // SKIPPED 로그 추가
+            log.debug("Non-door INSERT entity SKIPPED: BlockName='{}', Layer='{}'", blockName,
+                currentLayerName); // SKIPPED 로그 추가
         } else {
             log.debug("INSERT entity with null blockName SKIPPED on layer '{}'", currentLayerName);
         }

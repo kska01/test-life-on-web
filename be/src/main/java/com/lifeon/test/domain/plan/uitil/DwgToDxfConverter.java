@@ -35,8 +35,12 @@ public class DwgToDxfConverter {
         File inputDir = new File(uploadDir, "oda_input");
         File outputDir = new File(uploadDir, "oda_output");
 
-        if (!inputDir.exists()) inputDir.mkdirs();
-        if (!outputDir.exists()) outputDir.mkdirs();
+        if (!inputDir.exists()) {
+            inputDir.mkdirs();
+        }
+        if (!outputDir.exists()) {
+            outputDir.mkdirs();
+        }
 
         // oda_input 폴더 안에 dwg 파일과 같은 이름으로 만들어진 객체, 실제파일이 아니라 dwg 파일이 복사될 위치를 가르키는 객체
         File tempDwgFile = new File(inputDir, dwgFile.getName());
@@ -77,11 +81,13 @@ public class DwgToDxfConverter {
             }
 
             // dxfFiles 폴더에 저장할 dxf로 변환된 파일 객체
-            File convertedDxf = new File(outputDir, dwgFile.getName().replaceFirst("(?i)\\.dwg$", ".dxf"));
+            File convertedDxf = new File(outputDir,
+                dwgFile.getName().replaceFirst("(?i)\\.dwg$", ".dxf"));
 
             if (exitCode == 0 && convertedDxf.exists()) {
                 // 최종 DXF 파일 저장 경로 생성 (폴더 + 파일명)
-                File targetDxfFile = new File(dxfFileStoragePath, dwgFile.getName().replaceFirst("(?i)\\.dwg$", ".dxf"));
+                File targetDxfFile = new File(dxfFileStoragePath,
+                    dwgFile.getName().replaceFirst("(?i)\\.dwg$", ".dxf"));
 
                 // 출력 파일이 이미 존재하면 삭제
                 if (targetDxfFile.exists()) {
@@ -89,7 +95,8 @@ public class DwgToDxfConverter {
                 }
 
                 // dxfFiles 폴더에 저장
-                Files.move(convertedDxf.toPath(), targetDxfFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                Files.move(convertedDxf.toPath(), targetDxfFile.toPath(),
+                    StandardCopyOption.REPLACE_EXISTING);
                 dxfParser.extractDoorInfo(targetDxfFile.getPath());
                 deleteDirectory(inputDir);
                 deleteDirectory(outputDir);

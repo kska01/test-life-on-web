@@ -18,7 +18,7 @@ public class PlanFileController {
     private final PlanFileService planFileService;
 
     @PostMapping("/plan-files")
-    public ResponseEntity uploadFile(@RequestPart(value = "planFile")MultipartFile planFile) {
+    public ResponseEntity uploadFile(@RequestPart(value = "planFile") MultipartFile planFile) {
 
         planFileService.uploadFile(planFile);
 
