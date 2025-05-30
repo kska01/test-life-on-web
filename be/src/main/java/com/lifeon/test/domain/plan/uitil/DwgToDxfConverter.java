@@ -4,13 +4,17 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class DwgToDxfConverter {
+
+    private final DxfParser dxfParser;
 
     @Value("${odaConverterPath}")
     private String odaConverterPath;
@@ -19,17 +23,17 @@ public class DwgToDxfConverter {
         // dwg 파일 객체
         File dwgFile = new File(dwgFilePath);
         // dxf 파일 저장되는 폴더 경로
-        File outputDxfFile = new File(outputDxfFilePath);
+        File dxfFileStoragePath = new File(outputDxfFilePath);
         // updloads 폴더까지 경로
-        File parentDir = dwgFile.getParentFile();
+        File uploadDir = dwgFile.getParentFile();
 
-        if (parentDir == null) {
-            parentDir = new File("."); // 현재 디렉토리 사용
+        if (uploadDir == null) {
+            uploadDir = new File("."); // 현재 디렉토리 사용
         }
 
         // uploads 폴더 안에 생성되는 oda_input 폴더 와 oda_output 폴더 경로
-        File inputDir = new File(parentDir, "oda_input");
-        File outputDir = new File(parentDir, "oda_output");
+        File inputDir = new File(uploadDir, "oda_input");
+        File outputDir = new File(uploadDir, "oda_output");
 
         if (!inputDir.exists()) inputDir.mkdirs();
         if (!outputDir.exists()) outputDir.mkdirs();
@@ -67,9 +71,9 @@ public class DwgToDxfConverter {
             int exitCode = process.waitFor();
 
             // outputDxfFile에 해당하는 폴더가 없으면 생성
-            if (!outputDxfFile.exists()) {
-                outputDxfFile.mkdirs();
-                log.info("Output DXF directory created: {}", outputDxfFile.getAbsolutePath());
+            if (!dxfFileStoragePath.exists()) {
+                dxfFileStoragePath.mkdirs();
+                log.info("Output DXF directory created: {}", dxfFileStoragePath.getAbsolutePath());
             }
 
             // dxfFiles 폴더에 저장할 dxf로 변환된 파일 객체
@@ -77,14 +81,16 @@ public class DwgToDxfConverter {
 
             if (exitCode == 0 && convertedDxf.exists()) {
                 // 최종 DXF 파일 저장 경로 생성 (폴더 + 파일명)
-                File targetDxfFile = new File(outputDxfFile, dwgFile.getName().replaceFirst("(?i)\\.dwg$", ".dxf"));
+                File targetDxfFile = new File(dxfFileStoragePath, dwgFile.getName().replaceFirst("(?i)\\.dwg$", ".dxf"));
 
                 // 출력 파일이 이미 존재하면 삭제
                 if (targetDxfFile.exists()) {
                     targetDxfFile.delete();
                 }
 
+                // dxfFiles 폴더에 저장
                 Files.move(convertedDxf.toPath(), targetDxfFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                dxfParser.extractDoorInfo(targetDxfFile.getPath());
                 deleteDirectory(inputDir);
                 deleteDirectory(outputDir);
                 return true;
